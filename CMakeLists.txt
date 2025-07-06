@@ -12,33 +12,43 @@
 #
 ########################################################################
 
-# Set a default coefficient numeric types if not specified
-if(NOT IGANET_PERFTESTS_COEFF_TYPE)
-  set (IGANET_PERFTESTS_COEFF_TYPE "double" CACHE STRING
-    "Coefficient type(float, double)" FORCE)
-endif()
-set_property(CACHE IGANET_PERFTESTS_COEFF_TYPE PROPERTY STRINGS
-  "float" "double")
+cmake_minimum_required (VERSION 3.24)
 
-message("PerfTests options:")
-message("IGANET_PERFTESTS_COEFF_TYPE........: ${IGANET_PERFTESTS_COEFF_TYPE}")
-message("")
-
-########################################################################
-# Config file
-########################################################################
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/perftest_config.hpp.in
-  "${CMAKE_CURRENT_BINARY_DIR}/perftest_config.hpp" @ONLY)
-
-########################################################################
-# Include directories
-########################################################################
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-########################################################################
-# Define remote repository
-########################################################################
 include(FetchContent)
+
+########################################################################
+#
+# Project: IgANet-PerfTests
+#
+########################################################################
+project(IgANet-PerfTests)
+
+add_library(iganet_perftests INTERFACE)
+add_library(iganet::perftests ALIAS iganet_perftests)
+
+########################################################################
+# IgANets (core)
+########################################################################
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)  
+  FetchContent_Declare(
+    iganet_core
+    GIT_REPOSITORY https://github.com/IgANets/iganet.git
+    GIT_TAG modularized
+  )
+  set(IGANET_BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE)  
+  FetchContent_MakeAvailable(iganet_core)
+  FetchContent_GetProperties(iganet_core)
+  include_directories(${iganet_core_SOURCE_DIR}/include)
+  
+  ######################################################################
+  # Set C++ standard
+  ######################################################################
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+
+  enable_testing()
+endif()
 
 ########################################################################
 # GoogleTest
@@ -65,12 +75,33 @@ FetchContent_GetProperties(bsplinelib)
 include_directories(${bsplinelib_SOURCE_DIR}/Sources)
 
 ########################################################################
-# Collect perftest sources
+# Options
 ########################################################################
+# Set a default coefficient numeric types if not specified
+if(NOT IGANET_PERFTESTS_COEFF_TYPE)
+  set (IGANET_PERFTESTS_COEFF_TYPE "double" CACHE STRING
+    "Coefficient type(float, double)" FORCE)
+endif()
+set_property(CACHE IGANET_PERFTESTS_COEFF_TYPE PROPERTY STRINGS
+  "float" "double")
 
-add_custom_target(iganet_perftests)
+message("")
+message("PerfTests options:")
+message("IGANET_PERFTESTS_COEFF_TYPE........: ${IGANET_PERFTESTS_COEFF_TYPE}")
+message("")
 
-file(GLOB PERFTESTS *.cxx)
+########################################################################
+# Config file
+########################################################################
+configure_file(${PROJECT_SOURCE_DIR}/src/perftest_config.hpp.in
+  "${PROJECT_BINARY_DIR}/src/perftest_config.hpp" @ONLY)
+
+include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
+
+########################################################################
+# Collect performance test sources
+########################################################################
+file(GLOB PERFTESTS src/*.cxx)
 
 foreach(perftest ${PERFTESTS})
 
@@ -82,39 +113,12 @@ foreach(perftest ${PERFTESTS})
     target_precompile_headers(${name} REUSE_FROM iganet_pch)
   endif()
 
-  target_compile_options(${name} PUBLIC "-DIGANET_DATA_DIR=\"${PROJECT_SOURCE_DIR}/filedata/\"")
-
-  # LibTorch
-  target_link_libraries(${name} PUBLIC "${TORCH_LIBRARIES}")
-  target_link_libraries(${name} PUBLIC pugixml)
-
-  # Intel Extension for PyTorch
-  if (NOT IGANET_BUILD_CPUONLY AND IPEX_FOUND)
-    target_link_libraries(${name} PUBLIC ${TORCH_IPEX_LIBRARIES})
-  endif()
-
-  # BSplineLib
-  target_link_libraries(${name} PUBLIC splines)
-
-  # Google test
-  target_link_libraries(${name} PUBLIC gtest_main)
-
-  if (IGANET_WITH_GISMO)
-    target_link_libraries(${name} PUBLIC gismo_static)
-  endif()
-
-  if (IGANET_WITH_MATPLOT)
-    target_link_libraries(${name} PUBLIC Matplot++::matplot)
-  endif()
-
-  if (IGANET_WITH_MPI)
-    target_link_libraries(${name} PUBLIC MPI::MPI_CXX)
-  endif()
-
-  if (IGANET_WITH_OPENMP)
-    target_link_libraries(${name} PUBLIC OpenMP::OpenMP_CXX)
-  endif()
-
-  target_compile_definitions(${name} PUBLIC UNITTEST_DISABLE_SHORT_MACROS)
+  target_compile_options(${name} PRIVATE "-DIGANET_DATA_DIR=\"${PROJECT_SOURCE_DIR}/filedata/\"")
+  target_link_libraries(${name} PRIVATE iganet::core)
+  target_link_libraries(${name} PRIVATE splines)
+  target_link_libraries(${name} PRIVATE gtest_main)
+  target_compile_definitions(${name} PRIVATE UNITTEST_DISABLE_SHORT_MACROS)
+  
   add_test(${name} ${name})
+  
 endforeach()
