@@ -1,5 +1,5 @@
 /**
-   @file unittests/unittest_bsplinelib.hpp
+   @file perftests/perftest_bsplinelib.hpp
 
    @brief BSplineLib helper functions
 

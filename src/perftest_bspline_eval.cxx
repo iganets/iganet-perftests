@@ -18,8 +18,8 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../unittests/unittest_bsplinelib.hpp"
 #include <gtest/gtest.h>
+#include <perftest_bsplinelib.hpp>
 #include <perftest_config.hpp>
 
 /// @brief Fixture for B-spline performance test

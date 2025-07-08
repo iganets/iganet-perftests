@@ -71,8 +71,8 @@ set(BSPLINELIB_SHARED ON CACHE BOOL "" FORCE)
 set(BSPLINELIB_BUILD_PUGIXML OFF CACHE BOOL "" FORCE)
 set(pugixml_DIR ${pugixml_BINARY_DIR})
 FetchContent_MakeAvailable(googletest bsplinelib)
-FetchContent_GetProperties(bsplinelib)
-include_directories(${bsplinelib_SOURCE_DIR}/Sources)
+target_link_libraries(iganet_perftests INTERFACE gtest_main splines)
+target_compile_definitions(iganet_perftests INTERFACE UNITTEST_DISABLE_SHORT_MACROS)
 
 ########################################################################
 # Options
@@ -107,7 +107,6 @@ foreach(perftest ${PERFTESTS})
 
   get_filename_component(name ${perftest} NAME_WE)
   add_executable(${name} ${perftest})
-  add_dependencies(iganet_perftests ${name})
 
   if(IGANET_BUILD_PCH AND NOT WIN32 AND NOT ${CMAKE_VERSION} VERSION_LESS "3.16.0")
     target_precompile_headers(${name} REUSE_FROM iganet_pch)
@@ -115,9 +114,7 @@ foreach(perftest ${PERFTESTS})
 
   target_compile_options(${name} PRIVATE "-DIGANET_DATA_DIR=\"${PROJECT_SOURCE_DIR}/filedata/\"")
   target_link_libraries(${name} PRIVATE iganet::core)
-  target_link_libraries(${name} PRIVATE splines)
-  target_link_libraries(${name} PRIVATE gtest_main)
-  target_compile_definitions(${name} PRIVATE UNITTEST_DISABLE_SHORT_MACROS)
+  target_link_libraries(${name} PRIVATE iganet::perftests)
   
   add_test(${name} ${name})
   
