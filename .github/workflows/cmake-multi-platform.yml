@@ -72,9 +72,7 @@ jobs:
     - name: Install PyTorch - MacOS
       if: matrix.os == 'macos-latest'
       run: >
-        wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-2.7.1.zip -O libtorch.zip &&
-        unzip libtorch.zip -d $HOME &&
-        rm -f libtorch.zip
+        brew install pytorch
 
     - name: Install PyTorch - Windows
       if: matrix.os == 'windows-latest'
