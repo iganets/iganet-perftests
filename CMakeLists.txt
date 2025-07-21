@@ -32,8 +32,7 @@ add_library(iganet::perftests ALIAS iganet_perftests)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)  
   FetchContent_Declare(
     iganet_core
-    GIT_REPOSITORY https://github.com/IgANets/iganet.git
-    GIT_TAG modularized
+    URL https://github.com/IgANets/iganet/archive/refs/heads/master.zip
   )
   set(IGANET_BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE)  
   FetchContent_MakeAvailable(iganet_core)
