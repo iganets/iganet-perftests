@@ -25,16 +25,25 @@ project(IgANet-PerfTests)
 
 add_library(iganet_perftests INTERFACE)
 add_library(iganet::perftests ALIAS iganet_perftests)
+target_include_directories(iganet_examples INTERFACE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 ########################################################################
 # IgANets (core)
 ########################################################################
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)  
-  FetchContent_Declare(
-    iganet_core
-    URL https://github.com/IgANets/iganet/archive/refs/heads/master.zip
-  )
-  set(IGANET_BUILD_EXAMPLES  OFF CACHE BOOL "" FORCE)  
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+
+  if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    FetchContent_Declare(
+      iganet_core
+      GIT_REPOSITORY https://github.com/iganets/iganet.git
+    )
+  else()  
+    FetchContent_Declare(
+      iganet_core
+      URL https://github.com/IgANets/iganet/archive/refs/heads/master.zip
+    )
+  endif()
+     
   FetchContent_MakeAvailable(iganet_core)
   FetchContent_GetProperties(iganet_core)
   
@@ -93,8 +102,6 @@ message("")
 ########################################################################
 configure_file(${PROJECT_SOURCE_DIR}/src/perftest_config.hpp.in
   "${PROJECT_BINARY_DIR}/src/perftest_config.hpp" @ONLY)
-
-include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 ########################################################################
 # Collect performance test sources
