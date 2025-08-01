@@ -25,7 +25,7 @@ project(IgANet-PerfTests)
 
 add_library(iganet_perftests INTERFACE)
 add_library(iganet::perftests ALIAS iganet_perftests)
-target_include_directories(iganet_examples INTERFACE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
+target_include_directories(iganet_perftests INTERFACE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 ########################################################################
 # IgANets (core)
