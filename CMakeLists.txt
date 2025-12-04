@@ -107,18 +107,20 @@ configure_file(${PROJECT_SOURCE_DIR}/src/perftest_config.hpp.in
 ########################################################################
 # Collect performance test sources
 ########################################################################
+include(GNUInstallDirs)
+
 file(GLOB PERFTESTS src/*.cxx)
 
 foreach(perftest ${PERFTESTS})
 
   get_filename_component(name ${perftest} NAME_WE)
   add_executable(${name} ${perftest})
+  install(TARGETS ${name} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   if(IGANET_BUILD_PCH AND NOT WIN32 AND NOT ${CMAKE_VERSION} VERSION_LESS "3.16.0")
     target_precompile_headers(${name} REUSE_FROM iganet_pch)
   endif()
 
-  target_compile_options(${name} PRIVATE "-DIGANET_DATA_DIR=\"${PROJECT_SOURCE_DIR}/filedata/\"")
   target_link_libraries(${name} PRIVATE iganet::core)
   target_link_libraries(${name} PRIVATE iganet::perftests)
   
